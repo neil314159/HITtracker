@@ -91,6 +91,7 @@ h1,h2,h3{margin:0;}
   border-radius:9px; padding:10px 8px; font-size:16px; text-align:center; font-variant-numeric:tabular-nums;}
 .set-row input:focus{outline:none; border-color:var(--muted);}
 .set-row input::placeholder{color:var(--faint);}
+.set-row input.prefill{color:var(--faint);}
 .chk{width:44px; height:44px; border-radius:9px; background:var(--surface2); border:1px solid var(--line);
   color:var(--faint); font-size:18px; font-weight:800; display:flex; align-items:center; justify-content:center;}
 .chk.done{background:rgba(46,156,88,.14); border-color:var(--done); color:var(--done);}
@@ -514,11 +515,12 @@ function startWorkout(woId){
     exercises: wo.exercises.map(ex => {
       const prev = lastSets(ex.id);
       return { exId: ex.id, name: ex.name, repsOnly: !!ex.repsOnly,
-        sets: ex.sets.map((s, i) => ({
-          type: s.type, target: s.target,
-          weight: (!ex.repsOnly && prev && prev[i] && prev[i].weight != null) ? prev[i].weight : "",
-          reps:   (prev && prev[i] && prev[i].reps != null) ? prev[i].reps : "",
-          done: false })) };
+        sets: ex.sets.map((s, i) => {
+          const w = (!ex.repsOnly && prev && prev[i] && prev[i].weight != null) ? prev[i].weight : "";
+          const r = (prev && prev[i] && prev[i].reps != null) ? prev[i].reps : "";
+          return { type: s.type, target: s.target, weight: w, reps: r, done: false,
+                   pre: { w: w !== "", r: r !== "" } };
+        }) };
     })
   };
   state.active = session; save();
@@ -571,8 +573,8 @@ function renderWorkout(){
       html += '<div class="set-row">' + tag +
         (ex.repsOnly
           ? '<span style="text-align:center;color:var(--faint);font-size:12px;">—</span>'
-          : '<input type="text" inputmode="decimal" placeholder="kg" value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)">') +
-        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '" value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)">' +
+          : '<input type="text" inputmode="decimal" placeholder="kg"' + (st.pre && st.pre.w && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)">') +
+        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '"' + (st.pre && st.pre.r && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)">' +
         '<button class="chk' + (st.done ? " done" : "") + '" onclick="toggleDone(' + ei + ',' + si + ',this)">✓</button>' +
       '</div>';
       const hist = setHistory(ex.exId, si, 3);
@@ -587,11 +589,17 @@ function renderWorkout(){
 function setVal(ei, si, field, val){
   const st = state.active.exercises[ei].sets[si];
   st[field] = val.trim();
+  if(st.pre){ st.pre[field === "weight" ? "w" : "r"] = false;
+    document.activeElement && document.activeElement.classList && document.activeElement.classList.remove("prefill"); }
   save();
 }
 function toggleDone(ei, si, btn){
   const st = state.active.exercises[ei].sets[si];
   st.done = !st.done;
+  if(st.done){
+    if(st.reps === "" && /^\d+(\.\d+)?$/.test(st.target)) st.reps = st.target;
+    st.pre = null;
+  }
   save();
   const y = window.scrollY;
   renderWorkout();
