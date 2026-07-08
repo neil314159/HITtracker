@@ -346,6 +346,14 @@ let calCursor = new Date();
 function renderHome(){
   const done = completedSessions();
   $("home-count").textContent = done.length ? done.length + " sessions logged" : "";
+  if(state.active){
+    $("next-card").innerHTML =
+      '<div><div class="nc-label">In progress</div>' +
+      '<div class="nc-name">' + esc(state.active.workoutName) + '</div>' +
+      '<div class="nc-meta">Started ' + state.active.date + ' — nothing is lost, jump back in</div></div>' +
+      '<button class="btn primary" onclick="resumeActive()">Resume</button>';
+    renderCalendar(); return;
+  }
   const idx = nextWorkoutIndex();
   const w = state.program[idx];
   const last = done.length ? done[done.length-1] : null;
@@ -427,10 +435,7 @@ function deleteSession(id){
 let clockInt = null, restInt = null, restEndsAt = null, wakeLock = null;
 
 function startWorkout(woId){
-  if(state.active){
-    if(!confirm("A workout is already in progress. Resume it?")){ return; }
-    show("view-workout"); renderWorkout(); startClock(); return;
-  }
+  if(state.active){ resumeActive(); return; }
   const wo = state.program.find(w => w.id === woId);
   const session = {
     id: uid(), workoutId: wo.id, workoutName: wo.name,
@@ -464,8 +469,8 @@ function renderWorkout(){
       html += '<div class="set-row">' + tag +
         (ex.repsOnly
           ? '<span style="text-align:center;color:var(--faint);font-size:12px;">—</span>'
-          : '<input type="text" inputmode="decimal" placeholder="kg" value="' + esc(st.weight) + '" onchange="setVal(' + ei + ',' + si + ',\'weight\',this.value)">') +
-        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '" value="' + esc(st.reps) + '" onchange="setVal(' + ei + ',' + si + ',\'reps\',this.value)">' +
+          : '<input type="text" inputmode="decimal" placeholder="kg" value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)">') +
+        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '" value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)">' +
         '<button class="chk' + (st.done ? " done" : "") + '" onclick="toggleDone(' + ei + ',' + si + ',this)">✓</button>' +
       '</div>';
       const hist = setHistory(ex.exId, si, 3);
@@ -513,10 +518,26 @@ $("btn-discard").onclick = () => {
 };
 
 /* rest timer (timestamp-based) */
+function resumeActive(){
+  show("view-workout"); renderWorkout(); startClock(); resumeRestIfRunning();
+}
+function resumeRestIfRunning(){
+  const t = parseInt(localStorage.getItem("hitlog.restEndsAt") || "0", 10);
+  if(t && t > Date.now()){
+    restEndsAt = t;
+    $("rest-bar").classList.add("running");
+    $("btn-rest").textContent = "Cancel";
+    restInt = setInterval(tickRest, 250);
+    tickRest();
+  }else{
+    localStorage.removeItem("hitlog.restEndsAt");
+  }
+}
 $("btn-rest").onclick = () => {
   if(restEndsAt){ stopRest(); return; }
   ensureAudio();
   restEndsAt = Date.now() + REST_SECONDS * 1000;
+  localStorage.setItem("hitlog.restEndsAt", String(restEndsAt));
   $("rest-bar").classList.add("running");
   $("btn-rest").textContent = "Cancel";
   restInt = setInterval(tickRest, 250);
@@ -533,6 +554,7 @@ function tickRest(){
 function stopRest(finished){
   if(restInt){ clearInterval(restInt); restInt = null; }
   restEndsAt = null;
+  localStorage.removeItem("hitlog.restEndsAt");
   const bar = $("rest-bar");
   bar.classList.remove("running");
   $("btn-rest").textContent = "Start rest";
@@ -711,15 +733,13 @@ function doImport(){
 window.startWorkout = startWorkout; window.openEdit = openEdit; window.setVal = setVal;
 window.toggleDone = toggleDone; window.moveEx = moveEx; window.delEx = delEx;
 window.openExForm = openExForm; window.saveExForm = saveExForm; window.closeModal = closeModal;
-window.deleteSession = deleteSession; window.doImport = doImport;
+window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive;
 
 renderHome();
 if(state.active){
-  if(confirm("Resume the workout in progress from " + state.active.date + "?")){
-    show("view-workout"); renderWorkout(); startClock();
-  }else{
-    state.active = null; save();
-  }
+  show("view-workout"); renderWorkout(); startClock();
+  resumeRestIfRunning();
+  toast("Workout resumed");
 }
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("sw.js").catch(()=>{}); }
 </script>
