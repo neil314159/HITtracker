@@ -97,6 +97,12 @@ h1,h2,h3{margin:0;}
 .set-hist{grid-column:1/-1; font-size:11.5px; color:var(--faint); font-variant-numeric:tabular-nums;
   padding:0 0 4px 52px; margin-top:-4px; letter-spacing:.02em;}
 .set-hist b{color:var(--muted); font-weight:600;}
+.pr{color:#B07500; font-weight:800; margin-left:8px; white-space:nowrap;}
+.info-btn{width:20px; height:20px; border-radius:50%; border:1px solid var(--line); background:var(--surface2);
+  color:var(--muted); font-size:11px; font-weight:800; margin-left:7px; vertical-align:2px; line-height:1;}
+.fg b{display:block; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:12px;}
+.fg p{margin:4px 0 0; font-size:13.5px; line-height:1.5;}
+.fg .fg-back b{color:var(--accent);}
 
 /* rest timer bar — the signature element */
 .rest-bar{position:fixed; left:0; right:0; bottom:0; z-index:30;
@@ -273,6 +279,7 @@ function defaultProgram(){
       mkEx("leg-press","Leg Press",["12","12"],"10-12"),
       mkEx("hack-squat","Hack Squat",["12"],"8-10"),
       mkEx("leg-curl","Machine Leg Curl",["8-10"],"8-10"),
+      mkEx("glute-bridge-machine","Glute Bridge Machine",["10"],"10"),
       mkEx("single-leg-curl","Single-Leg Leg Curl",[],"8-10"),
       mkEx("standing-calf-raise","Standing Calf Raise",["10-12"],"10-12"),
       mkEx("seated-calf-raise","Seated Calf Raise",[],"10-12"),
@@ -280,11 +287,75 @@ function defaultProgram(){
   ];
 }
 
+
+/* condensed form guides, keyed by exercise id */
+const FORM = {
+"mach-shoulder-press":{s:"Seated, lower back on the pad, handles around upper-chin height, elbows slightly forward of the torso.",c:"Press up and slightly in; stop just short of a hard lockout to keep tension on the delts. Lower under control to ear level. Yates moved to machine pressing so he could go safely to failure.",a:"Bouncing out of the bottom, full elbow flare, arching the low back, resting at lockout."},
+"db-lateral-raise":{s:"Seated (kills momentum), slight fixed elbow bend, palms facing down.",c:"Lead with the elbows out to shoulder height only, then control the descent. Yates: no higher than parallel. At failure, continue with partials - three-quarter, half, then quarter reps.",a:"Swinging, going above parallel, shrugging the traps, tipping the dumbbells."},
+"cable-one-arm-lateral":{s:"Side-on to a low pulley, handle in the outside hand, slight lean away, slight elbow bend.",c:"Constant cable tension is the point - lead with the elbow to shoulder height, slow deliberate negative, especially on assisted reps.",a:"Torso swing, letting the cable snap the arm back down."},
+"db-shrug":{s:"Slight forward torso lean, long neutral spine, chin tucked. Straps fine.",c:"Yates cue: shrug up AND back, not straight up - this recruits the mid and lower traps too. Hold the top squeeze 1-2 s, full stretch at the bottom.",a:"Pure vertical shrugging, rolling the shoulders, locked-straight elbows, rounding the low back."},
+"cable-pushdown":{s:"Slight forward lean, upper arms glued to your sides.",c:"Press down and back with a hard squeeze to full extension. Yates: going lower than mid-chest on the return path adds tendon stress, not muscle work. Control the return.",a:"Elbows drifting forward, leaning bodyweight onto the bar, letting the stack yank the arms up."},
+"bb-lying-tri-ext":{s:"Flat bench, EZ bar (kinder to wrists and elbows), elbows up and fixed. Use a spotter.",c:"Lower to the forehead with the elbows immobile, extend smoothly, slow negative. Yates: do not let it become a close-grip press.",a:"Elbow flare, drifting the elbows back, bouncing off the forehead. Yates tore his triceps on this lift - warm up thoroughly and never skip the spotter."},
+"cable-one-arm-pushdown":{s:"Single handle, underhand grip, upper arm pinned to the side.",c:"Full extension, hard squeeze, slow negative. Isolates the triceps with low elbow strain - safe to push past failure.",a:"Torso rotation, elbow drift, rushing the eccentric."},
+"roman-chair-situp":{s:"Feet anchored, hands across the chest.",c:"Controlled full range; exhale hard and squeeze at the top.",a:"Momentum, swinging, pulling on the neck."},
+"crunch":{s:"Knees bent, hands lightly at the chest.",c:"Curl the ribcage toward the pelvis - short range. Yates: squeeze so hard the abs verge on cramping, with a big exhale at the peak. Slow descent.",a:"Neck pulling, momentum, turning it into a long sit-up."},
+"reverse-crunch":{s:"On your back, hands by your sides.",c:"Curl the hips toward the chest with control, lower slowly. Less lumbar flexion than sit-ups - back-friendly.",a:"Swinging the legs, dropping the hips fast."},
+"close-grip-pulldown":{s:"Close underhand grip, chest up, slight backward lean, head up.",c:"Drive the elbows down and back, bar to the upper chest, hold the squeeze 1 s - Yates: if you cannot hold it, you used momentum. Full stretch up top; do not let the stack touch down.",a:"Torso heaving, pulling with the hands and biceps, grip too wide."},
+"trap-bar-deadlift":{s:"High handles. Midfoot under you, neutral braced spine, ribs over pelvis, lats packed.",c:"Brace, push the floor away, stand tall with the glutes squeezed - no lean-back at the top. Dead-stop on the floor and re-brace every rep.",a:"Lumbar rounding, hips shooting up first, hyperextending at lockout.",b:"Stop the set at the first hint of lumbar rounding - technical failure, not absolute. No forced reps here. Yates kept his deads moderate and tension-focused; so should you."},
+"cable-pullover":{s:"Face a high pulley, arms nearly straight with a fixed slight bend, slight hip hinge, braced.",c:"Arc the bar down to the thighs - think upper arm moving down and back. Squeeze the lats, full overhead stretch on the return.",a:"Bending the elbows into a pushdown, swinging, cutting the stretch."},
+"bent-over-row":{s:"Yates row: torso at about 45 degrees - more upright than a classic row. Grip just outside the hips, head up, core braced.",c:"Drive the elbows back, bar to the lower abdomen, 1 s squeeze, control down without touching the floor. The upright angle protects the low back and puts the lats in a strong line.",a:"Standing so upright it becomes a shrug, biceps yanking, torso heave.",b:"Neutral spine throughout. A heave or any rounding is the stop signal - end the set. Chest-supported row is a valid fallback on tired days."},
+"db-bent-over-row":{s:"Hand and knee on a bench, other foot planted, flat back.",c:"Yates: pull up and back into the hip, not straight up to the chest. Squeeze, then lower to a full stretch.",a:"Torso rotation, jerking, pulling too high."},
+"cable-seated-row":{s:"Tall braced torso, slight knee bend, shoulder-width grip.",c:"Elbows back, handle to the abdomen, squeeze the blades together, full stretch forward with the stack kept off between reps. Only a small controlled lean.",a:"Big torso swing, rounding on the stretch, no peak squeeze."},
+"rear-delt-hammer-fly":{s:"Chest against the pad - nothing can move.",c:"Wide arc out and back with the elbows leading, pause at the peak, control the return. Higher reps, strict.",a:"Momentum, shrugging, ego loading."},
+"reverse-pec-deck":{s:"Chest to the pad, hands in line with the shoulders, fixed slight elbow bend.",c:"Push out and back until the rear delts contract, squeeze, slow return. 15-20 strict reps works well here.",a:"Trap takeover, changing the elbow angle mid-rep, going heavy and losing the connection."},
+"back-extension":{s:"Hip crease just above the pad edge, arms crossed on the chest.",c:"Hinge down with a neutral spine to a hamstring stretch, rise to a straight line and STOP - hold that neutral top 2-3 s as a static squeeze.",a:"Arching past neutral at the top (the main injury risk), rounding on the way down, jerking, adding load too soon.",b:"Never hyperextend. Consider doing the trap-bar deadlift first while fresh, and this afterwards, so the erectors are not pre-exhausted going into a loaded hinge."},
+"mach-incline-press":{s:"Handles at upper-chest height, back flat. Yates favoured a shallow incline so the pecs, not the front delts, do the work.",c:"Deep stretch at the bottom, smooth strong drive, stop short of lockout. Slow and precise on the way down. Rest-pause is the safe way past failure: rack, three breaths, one or two more reps.",a:"Bouncing, flaring the elbows to 90 degrees, resting at lockout."},
+"mach-chest-press":{s:"Handles at mid-chest, shoulder blades retracted and pinned to the pad.",c:"Press forward and slightly in, no hard lockout, controlled return to a chest stretch. The machine makes true failure safe.",a:"Shoulders rolling off the pad, partial range, resting at lockout."},
+"pec-deck":{s:"Handles at mid-chest, comfortable stretch to start - not an aggressive one.",c:"Hug-a-tree squeeze, hold the peak, control the opening. Grip lightly so the forearms stay out of it.",a:"Over-deep stretching, pressing with the elbows, letting the stack yank the arms back."},
+"cable-crossover":{s:"Pulleys around shoulder height, split stance, slight forward lean, fixed elbow bend.",c:"Bring the hands together in an arc and squeeze hard at full adduction - cables keep tension where dumbbells lose it. Full stretch on the return. The finisher: chase the squeeze.",a:"Turning it into a press, leaning bodyweight in, snapping back."},
+"db-incline-curl":{s:"45-60 degree bench, arms hanging back behind the torso for a full stretch.",c:"Curl with zero swing, supinate, big peak squeeze, slow negative - Yates: the negative is the key phase.",a:"Momentum, cutting the stretch short, rushing the eccentric. Yates warning: do not grind biceps far past failure - the joint and fibre structure will not thank you."},
+"bb-curl":{s:"EZ bar, elbows tucked to the sides, core braced.",c:"Smooth arc with the elbows fixed, squeeze at the top, controlled descent to full extension.",a:"Hip heave, elbows drifting forward, dropping the negative. Stop at or just past positive failure - biceps do not get the past-failure treatment."},
+"mach-preacher-curl":{s:"Armpits near the top of the pad, upper arms flat on it.",c:"Curl, hold the peak, slow negative. The machine stabilises everything, so extra negatives are safe here.",a:"Lifting the elbows off the pad, bouncing out of the stretched bottom."},
+"leg-extension":{s:"Knee joint aligned with the machine pivot, pad on the lower shin.",c:"Full extension with a sharp 1 s hold at the top - Yates: maximum stretch to maximum contraction, every rep. Control the descent.",a:"Partial reps, slamming the stack, bouncing the torso."},
+"leg-press":{s:"Feet shoulder-width, mid-platform. Low backrest. Glutes and lower back pressed hard into the pad - pull yourself down with the handles.",c:"2-3 s descent only as deep as the lower back stays flat (about 90 degrees at the knee), then a smooth drive with no lockout snap.",a:"Knees caving, hands pushing the knees, ego loads.",b:"The moment the pelvis tucks and the low back lifts off the pad, the rep went too deep - that position under load is the disc risk. Cap the depth; this rule is non-negotiable."},
+"hack-squat":{s:"Back flat on the pad, shoulder-width or slightly narrower stance, core braced.",c:"Control down with the knees over the toes; go only as deep as the low back stays glued to the pad. Drive up through the whole foot - every rep counts, no cutting corners.",a:"Heels lifting, knees caving, bouncing out of the bottom.",b:"Pelvic tuck against the pad = too deep. Third quad movement of the day - the quads are pre-fatigued, so moderate loads do the job."},
+"leg-curl":{s:"Pad just above the heels, knee at the pivot, hips pinned down.",c:"Curl to the glutes with a hard squeeze, constant tension - never let the weight rest. Full range, slow negative.",a:"Hips popping up (a lumbar cheat), partial range, slamming the negative."},
+"glute-bridge-machine":{s:"Shoulders on the pad, feet flat about hip-width, shins near vertical at the top, pad across the hip crease.",c:"Drive through the heels to a straight line, 1-2 s glute squeeze with a slight tailbone tuck at the top. 2-3 s down; do not rest at the bottom. Chase the squeeze, not the load.",a:"Pushing through the toes, rib flare, craning the neck, bouncing.",b:"Finish with the squeeze, never an arch - if you feel the top of the rep in the lower back, you are hyperextending. Otherwise this is one of the most back-friendly hinges available."},
+"single-leg-curl":{s:"As the leg curl, one leg at a time, hips pinned.",c:"Strict, hard squeeze at the top, slow negative. Evens out left-right imbalances.",a:"Hip hiking on the working side, momentum, partial range."},
+"standing-calf-raise":{s:"Balls of the feet on the platform edge, knees locked - straight legs target the gastrocnemius.",c:"Deep stretch below the platform, full rise, 1-2 s squeeze at the top. Yates trained calves heavy to failure with exaggerated range - full ROM is the whole game.",a:"Bouncing off the stretch reflex, partial reps, bending the knees, loads so heavy the range collapses."},
+"seated-calf-raise":{s:"Knees at about 90 degrees (targets the soleus), balls of the feet on the platform.",c:"Full stretch, pause, full rise and squeeze. Yates: sit on the balls of your feet so you get a proper stretch.",a:"Overloading into short reps, bouncing, pulling on the handles."}
+};
+function showForm(exId){
+  const g = FORM[exId];
+  if(!g) return;
+  let nm = exId;
+  outer: for(const w of state.program){
+    for(const e of w.exercises){ if(e.id === exId){ nm = e.name; break outer; } }
+  }
+  openModal('<h3>' + esc(nm) + '</h3><div class="fg">' +
+    '<b>Setup</b><p>' + g.s + '</p>' +
+    '<b>Execution</b><p>' + g.c + '</p>' +
+    '<b>Avoid</b><p>' + g.a + '</p>' +
+    (g.b ? '<span class="fg-back"><b>Lower back</b></span><p>' + g.b + '</p>' : '') +
+    '</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button></div>');
+}
+
 let state = load();
+function migrate(s){
+  try{
+    const w4 = s.program.find(w => w.id === "w4");
+    if(w4 && !w4.exercises.some(e => e.id === "glute-bridge-machine")){
+      const i = w4.exercises.findIndex(e => e.id === "leg-curl");
+      w4.exercises.splice(i >= 0 ? i + 1 : w4.exercises.length, 0,
+        mkEx("glute-bridge-machine","Glute Bridge Machine",["10"],"10"));
+      localStorage.setItem(LS_KEY, JSON.stringify(s));
+    }
+  }catch(e){}
+}
 function load(){
   try{
     const raw = localStorage.getItem(LS_KEY);
-    if(raw){ const s = JSON.parse(raw); if(s && s.program) return s; }
+    if(raw){ const s = JSON.parse(raw); if(s && s.program){ migrate(s); return s; } }
   }catch(e){}
   return {program: defaultProgram(), sessions: [], active: null};
 }
@@ -454,6 +525,36 @@ function startWorkout(woId){
   show("view-workout"); renderWorkout(); startClock();
 }
 
+function prevBest(exId){
+  let bw = 0, bv = 0, br = 0;
+  completedSessions().forEach(s => {
+    const e = s.exercises.find(x => x.exId === exId);
+    if(!e) return;
+    e.sets.forEach(st => {
+      if(st.type === "work" && st.done){
+        const w = parseFloat(st.weight) || 0, r = parseFloat(st.reps) || 0;
+        if(w > bw) bw = w;
+        if(w * r > bv) bv = w * r;
+        if(r > br) br = r;
+      }
+    });
+  });
+  return {bw, bv, br};
+}
+function prBadges(ex, si){
+  const st = ex.sets[si];
+  if(st.type !== "work" || !st.done) return "";
+  const best = prevBest(ex.exId);
+  const w = parseFloat(st.weight) || 0, r = parseFloat(st.reps) || 0;
+  const out = [];
+  if(ex.repsOnly){
+    if(best.br > 0 && r > best.br) out.push("&#9650; most reps");
+  }else{
+    if(best.bw > 0 && w > best.bw) out.push("&#9650; heaviest");
+    if(best.bv > 0 && w * r > best.bv) out.push("&#9650; best volume");
+  }
+  return out.map(t => '<span class="pr">' + t + '</span>').join("");
+}
 function renderWorkout(){
   const s = state.active; if(!s) return;
   $("sb-name").textContent = s.workoutName.split(" · ")[0];
@@ -462,7 +563,8 @@ function renderWorkout(){
   s.exercises.forEach((ex, ei) => {
     const card = document.createElement("div");
     card.className = "ex-card";
-    let html = '<div class="ex-head"><span class="ex-name">' + esc(ex.name) + '</span>' +
+    let html = '<div class="ex-head"><span class="ex-name">' + esc(ex.name) +
+               (FORM[ex.exId] ? '<button class="info-btn" onclick="showForm(\'' + ex.exId + '\')">i</button>' : '') + '</span>' +
                '<span class="ex-target">' + (ex.repsOnly ? "bodyweight" : "kg") + '</span></div>';
     ex.sets.forEach((st, si) => {
       const tag = st.type === "warm" ? '<span class="set-tag warm">W' + (si+1) + '</span>' : '<span class="set-tag work">WK</span>';
@@ -474,7 +576,8 @@ function renderWorkout(){
         '<button class="chk' + (st.done ? " done" : "") + '" onclick="toggleDone(' + ei + ',' + si + ',this)">✓</button>' +
       '</div>';
       const hist = setHistory(ex.exId, si, 3);
-      if(hist.length) html += '<div class="set-hist"><b>prev</b> ' + hist.join(", ") + '</div>';
+      const pr = prBadges(ex, si);
+      if(hist.length || pr) html += '<div class="set-hist">' + (hist.length ? '<b>prev</b> ' + hist.join(", ") : '') + pr + '</div>';
     });
     card.innerHTML = html;
     list.appendChild(card);
@@ -489,8 +592,10 @@ function setVal(ei, si, field, val){
 function toggleDone(ei, si, btn){
   const st = state.active.exercises[ei].sets[si];
   st.done = !st.done;
-  btn.classList.toggle("done", st.done);
   save();
+  const y = window.scrollY;
+  renderWorkout();
+  window.scrollTo(0, y);
 }
 
 function startClock(){
@@ -567,7 +672,7 @@ function stopRest(finished){
     if(navigator.vibrate) navigator.vibrate([300,120,300]);
   }
 }
-function updateRestUI(){ $("rest-time").textContent = fmtClock(REST_SECONDS); }
+function updateRestUI(){ if(!restEndsAt) $("rest-time").textContent = fmtClock(REST_SECONDS); }
 
 /* audio beep */
 let audioCtx = null;
@@ -733,7 +838,7 @@ function doImport(){
 window.startWorkout = startWorkout; window.openEdit = openEdit; window.setVal = setVal;
 window.toggleDone = toggleDone; window.moveEx = moveEx; window.delEx = delEx;
 window.openExForm = openExForm; window.saveExForm = saveExForm; window.closeModal = closeModal;
-window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive;
+window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm;
 
 renderHome();
 if(state.active){
