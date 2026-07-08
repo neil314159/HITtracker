@@ -104,6 +104,7 @@ h1,h2,h3{margin:0;}
 .fg b{display:block; font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:12px;}
 .fg p{margin:4px 0 0; font-size:13.5px; line-height:1.5;}
 .fg .fg-back b{color:var(--accent);}
+.ex-note{font-size:12px; color:var(--muted); margin:-4px 0 8px; line-height:1.35;}
 
 /* rest timer bar — the signature element */
 .rest-bar{position:fixed; left:0; right:0; bottom:0; z-index:30;
@@ -527,6 +528,26 @@ function startWorkout(woId){
   show("view-workout"); renderWorkout(); startClock();
 }
 
+function progEx(exId){
+  for(const w of state.program){ const e = w.exercises.find(x => x.id === exId); if(e) return e; }
+  return null;
+}
+function editNote(exId){
+  const pex = progEx(exId);
+  if(!pex) return;
+  openModal('<h3>' + esc(pex.name) + '</h3>' +
+    '<div class="field"><label>Machine settings</label>' +
+    '<input id="f-note" value="' + esc(pex.note || "") + '" placeholder="e.g. seat 4, pin 7, feet high">' +
+    '<div class="hint">Shown under the exercise during workouts. Leave blank to remove.</div></div>' +
+    '<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button>' +
+    '<button class="btn primary" onclick="saveNote(\'' + exId + '\')">Save</button></div>');
+}
+function saveNote(exId){
+  const pex = progEx(exId);
+  if(pex){ pex.note = $("f-note").value.trim(); save(); }
+  closeModal();
+  if(state.active){ const y = window.scrollY; renderWorkout(); window.scrollTo(0, y); }
+}
 function prevBest(exId){
   let bw = 0, bv = 0, br = 0;
   completedSessions().forEach(s => {
@@ -565,9 +586,12 @@ function renderWorkout(){
   s.exercises.forEach((ex, ei) => {
     const card = document.createElement("div");
     card.className = "ex-card";
+    const pex = progEx(ex.exId);
     let html = '<div class="ex-head"><span class="ex-name">' + esc(ex.name) +
-               (FORM[ex.exId] ? '<button class="info-btn" onclick="showForm(\'' + ex.exId + '\')">i</button>' : '') + '</span>' +
+               (FORM[ex.exId] ? '<button class="info-btn" onclick="showForm(\'' + ex.exId + '\')">i</button>' : '') +
+               '<button class="info-btn" onclick="editNote(\'' + ex.exId + '\')">&#9998;</button></span>' +
                '<span class="ex-target">' + (ex.repsOnly ? "bodyweight" : "kg") + '</span></div>';
+    if(pex && pex.note) html += '<div class="ex-note" onclick="editNote(\'' + ex.exId + '\')">' + esc(pex.note) + '</div>';
     ex.sets.forEach((st, si) => {
       const tag = st.type === "warm" ? '<span class="set-tag warm">W' + (si+1) + '</span>' : '<span class="set-tag work">WK</span>';
       html += '<div class="set-row">' + tag +
@@ -737,10 +761,11 @@ function renderEditList(){
   list.innerHTML = "";
   wo.exercises.forEach((ex, i) => {
     const scheme = ex.sets.map(s => (s.type === "warm" ? "(" + s.target + ")" : s.target)).join(" · ");
+    const noteBit = ex.note ? " · " + ex.note : "";
     const row = document.createElement("div");
     row.className = "edit-row";
     row.innerHTML =
-      '<span class="er-name">' + esc(ex.name) + '<span class="er-scheme">' + esc(scheme) + (ex.repsOnly ? " · reps only" : "") + '</span></span>' +
+      '<span class="er-name">' + esc(ex.name) + '<span class="er-scheme">' + esc(scheme) + (ex.repsOnly ? " · reps only" : "") + esc(noteBit) + '</span></span>' +
       '<button class="icon-btn" onclick="moveEx(' + i + ',-1)">↑</button>' +
       '<button class="icon-btn" onclick="moveEx(' + i + ',1)">↓</button>' +
       '<button class="icon-btn" onclick="openExForm(' + i + ')">✎</button>' +
@@ -771,6 +796,7 @@ function openExForm(i){
     (ex ? '<div class="hint">Renaming keeps the exercise history.</div>' : '') + '</div>' +
     '<div class="field"><label>Warm-up set targets (comma-separated, blank for none)</label><input id="f-warm" value="' + esc(warms) + '" placeholder="12, 10"></div>' +
     '<div class="field"><label>Working set target reps</label><input id="f-work" value="' + esc(work) + '" placeholder="6-8"></div>' +
+    '<div class="field"><label>Machine settings (optional)</label><input id="f-exnote" value="' + (ex && ex.note ? esc(ex.note) : "") + '" placeholder="e.g. seat 4, pin 7"></div>' +
     '<div class="field"><label><input type="checkbox" id="f-repsonly" style="width:auto" ' + (ex && ex.repsOnly ? "checked" : "") + '> Reps only (no weight, e.g. abs)</label></div>' +
     '<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button>' +
     '<button class="btn primary" onclick="saveExForm(' + (ex ? i : -1) + ')">Save</button></div>'
@@ -783,17 +809,21 @@ function saveExForm(i){
   const warmTargets = $("f-warm").value.split(",").map(s => s.trim()).filter(Boolean);
   const work = $("f-work").value.trim() || "6-8";
   const repsOnly = $("f-repsonly").checked;
+  const note = $("f-exnote").value.trim();
   if(i >= 0){
     const ex = wo.exercises[i];
     ex.name = name;
     ex.sets = warmTargets.map(t => ({type:"warm", target:t})).concat([{type:"work", target:work}]);
     ex.repsOnly = repsOnly;
+    ex.note = note;
   }else{
     let id = slug(name);
     const allIds = state.program.flatMap(w => w.exercises.map(e => e.id));
     if(allIds.includes(id) && !wo.exercises.some(e => e.id === id)){ /* shared id = shared history, fine */ }
     else if(wo.exercises.some(e => e.id === id)){ id = id + "-" + uid().slice(-4); }
-    wo.exercises.push(mkEx(id, name, warmTargets, work, repsOnly));
+    const nx = mkEx(id, name, warmTargets, work, repsOnly);
+    if(note) nx.note = note;
+    wo.exercises.push(nx);
   }
   save(); closeModal(); renderEditList();
 }
@@ -846,7 +876,7 @@ function doImport(){
 window.startWorkout = startWorkout; window.openEdit = openEdit; window.setVal = setVal;
 window.toggleDone = toggleDone; window.moveEx = moveEx; window.delEx = delEx;
 window.openExForm = openExForm; window.saveExForm = saveExForm; window.closeModal = closeModal;
-window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm;
+window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm; window.editNote = editNote; window.saveNote = saveNote;
 
 renderHome();
 if(state.active){
