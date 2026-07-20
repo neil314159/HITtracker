@@ -484,8 +484,9 @@ function renderWorkout(){
       html += '<div class="set-row">' + tag +
         (ex.repsOnly
           ? '<span style="text-align:center;color:var(--faint);font-size:12px;">—</span>'
-          : '<input type="text" inputmode="decimal" placeholder="kg"' + (st.pre && st.pre.w && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)">') +
-        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '"' + (st.pre && st.pre.r && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)">' +
+          : '<input type="text" inputmode="decimal" placeholder="kg"' + (st.pre && st.pre.w && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)" onfocus="preFocus(' + ei + ',' + si + ',\'weight\',this)" onblur="preBlur(' + ei + ',' + si + ',\'weight\',this)">') +
+        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '"' + (st.pre && st.pre.r && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)" onfocus="preFocus(' + ei + ',' + si + ',\'reps\',this)" onblur="preBlur(' + ei + ',' + si + ',\'reps\',this)">' +
+        '<span class="set-target">(' + esc(st.target) + ')</span>' +
         '<button class="chk' + (st.done ? " done" : "") + '" onclick="toggleDone(' + ei + ',' + si + ',this)">✓</button>' +
       '</div>';
       const hist = setHistory(ex.exId, si, 3);
@@ -496,6 +497,18 @@ function renderWorkout(){
     list.appendChild(card);
   });
   updateRestUI();
+}
+function preFocus(ei, si, field, el){
+  const st = state.active.exercises[ei].sets[si];
+  const k = field === "weight" ? "w" : "r";
+  if(st.pre && st.pre[k] && !st.done && el.value !== ""){ el.value = ""; }
+}
+function preBlur(ei, si, field, el){
+  const st = state.active.exercises[ei].sets[si];
+  const k = field === "weight" ? "w" : "r";
+  if(el.value === "" && st.pre && st.pre[k] && st[field] !== ""){
+    el.value = st[field]; el.classList.add("prefill");
+  }
 }
 function setVal(ei, si, field, val){
   const st = state.active.exercises[ei].sets[si];
@@ -775,7 +788,7 @@ function doImport(){
 window.startWorkout = startWorkout; window.openEdit = openEdit; window.setVal = setVal;
 window.toggleDone = toggleDone; window.moveEx = moveEx; window.delEx = delEx;
 window.openExForm = openExForm; window.saveExForm = saveExForm; window.closeModal = closeModal;
-window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm; window.editNote = editNote; window.saveNote = saveNote;
+window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm; window.editNote = editNote; window.saveNote = saveNote; window.preFocus = preFocus; window.preBlur = preBlur;
 
 renderHome();
 if(state.active){
