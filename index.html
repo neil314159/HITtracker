@@ -485,8 +485,8 @@ function renderWorkout(){
         (ex.repsOnly
           ? '<span style="text-align:center;color:var(--faint);font-size:12px;">—</span>'
           : '<input type="text" inputmode="decimal" placeholder="kg"' + (st.pre && st.pre.w && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.weight) + '" oninput="setVal(' + ei + ',' + si + ',\'weight\',this.value)" onfocus="preFocus(' + ei + ',' + si + ',\'weight\',this)" onblur="preBlur(' + ei + ',' + si + ',\'weight\',this)">') +
-        '<input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '"' + (st.pre && st.pre.r && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)" onfocus="preFocus(' + ei + ',' + si + ',\'reps\',this)" onblur="preBlur(' + ei + ',' + si + ',\'reps\',this)">' +
-        '<span class="set-target">(' + esc(st.target) + ')</span>' +
+        '<span class="reps-wrap"><input type="text" inputmode="numeric" placeholder="' + esc(st.target) + '"' + (st.pre && st.pre.r && !st.done ? ' class="prefill"' : '') + ' value="' + esc(st.reps) + '" oninput="setVal(' + ei + ',' + si + ',\'reps\',this.value)" onfocus="preFocus(' + ei + ',' + si + ',\'reps\',this)" onblur="preBlur(' + ei + ',' + si + ',\'reps\',this)">' +
+        '<i class="tgt">' + esc(st.target) + '</i></span>' +
         '<button class="chk' + (st.done ? " done" : "") + '" onclick="toggleDone(' + ei + ',' + si + ',this)">✓</button>' +
       '</div>';
       const hist = setHistory(ex.exId, si, 3);
