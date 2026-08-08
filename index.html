@@ -275,7 +275,7 @@ function setHistory(exId, setIdx, n){
     const st = ex.sets[setIdx];
     if(st && st.done){ const v = fmtVal(st); if(v) out.push(v); }
   }
-  return out.reverse();
+  return out; // newest first
 }
 /* most recent logged sets for an exercise (for prefill) */
 function lastSets(exId){
