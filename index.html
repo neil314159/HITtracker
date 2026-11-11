@@ -101,6 +101,7 @@ function mkEx(id, name, warmTargets, workTarget, repsOnly){
   sets.push({type:"work", target:workTarget});
   return {id, name, sets, repsOnly: !!repsOnly};
 }
+function carryEx(){ const e = mkEx("suitcase-carry","Suitcase Carry",[],"30s"); e.note = "each side - same weight, seconds per side"; return e; }
 function defaultProgram(){
   return [
     {id:"w1", name:"Shoulders · Traps · Triceps · Abs", color:"#E0A83C", exercises:[
@@ -124,7 +125,8 @@ function defaultProgram(){
       mkEx("cable-seated-row","Cable Seated Row",[],"6-8"),
       mkEx("reverse-pec-deck","Reverse Pec Deck",[],"8-12"),
       mkEx("db-reverse-fly","Dumbbell Reverse Flye",[],"12-15"),
-      mkEx("back-extension","Back Extension",[],"6-8"),
+      mkEx("back-ext-hold","Back Extension Hold",[],"30-60s",true),
+      carryEx(),
     ]},
     {id:"w3", name:"Chest · Biceps · Abs", color:"#E24545", exercises:[
       mkEx("mach-incline-press","Machine Incline Press",["12","10","6-8"],"6"),
@@ -133,7 +135,7 @@ function defaultProgram(){
       mkEx("cable-crossover","Cable Cross-Over",[],"8-10"),
       mkEx("db-incline-curl","Dumbbell Incline Curl",["10"],"6-8"),
       mkEx("bb-curl","Barbell Curl",["10"],"6-8"),
-      mkEx("mach-preacher-curl","Machine Preacher Curl",[],"6-8"),
+      mkEx("cable-curl","Cable Curl",[],"6-8"),
       mkEx("roman-chair-situp","Roman Chair Sit-Up",[],"20",true),
       mkEx("crunch","Crunch",[],"20",true),
       mkEx("reverse-crunch","Reverse Crunch",[],"10",true),
@@ -173,6 +175,9 @@ const FORM = {
 "reverse-pec-deck":{s:"Face the pad, chest glued to it, torso upright. Handles set so the arms travel a horizontal arc at shoulder height, hands in line with elbows and shoulders, fixed slight elbow bend.",c:"Shoulders down — no shrug. Push the handles out and back in a wide arc to full rear-delt contraction, hold the peak ~1 s ('if you can't hold it, you used momentum'), control the return, stack never touches down. Elbows lead, not hands. The chest support means nothing can move — the safe place to take rear delts to true failure and extend with partials.",br:"Exhale opening out, inhale returning.",a:"Trap takeover, changing the elbow angle mid-rep, swinging past the frontal plane, loads so heavy the arc shortens and the connection disappears.",y:"The main rear-delt working set — roughly 8-12 to failure, strict. Rear delts live on back day because they assist every row."},
 "db-reverse-fly":{s:"Take the lumbar spine out entirely — after the deadlift and rows the erectors are already taxed, so never do these free-standing. Either seated bent-over (Yates' style): chest folded down onto the thighs and kept there, dumbbells hanging under the shoulders, palms facing each other. Or chest-supported: prone on a ~30 degree incline bench, arms hanging. Fixed slight elbow bend either way.",c:"With the torso locked, raise the dumbbells out to the sides leading with the elbows, to parallel with the floor and no higher — above that the traps take over. Squeeze at the top, then lower under full control into a deep stretch. The free path and stretched bottom are what dumbbells add over the machine. Pre-fatigued from the pec deck, the weight will be light — that is correct, not a problem.",br:"Exhale raising, inhale lowering.",a:"Chest lifting off the thighs/bench to heave (momentum plus lumbar load), swinging, shrugging, raising above parallel, bending the elbows further mid-rep into a row.",y:"The second of Yates' two rear-delt movements — machine plus dumbbell rear lateral. 12-15 strict reps as the end-of-session finisher; clean-form failure, no forced reps needed.",b:"The chest-on-thighs or incline-bench position is the entire back-protection strategy — if the torso stays locked, the lumbar spine does nothing."},
 "back-extension":{s:"Pad adjusted so the hip crease sits just above the top edge, ankles anchored, arms crossed on the chest. Add a small plate only once bodyweight is easy. Core braced.",c:"Hinge down at the hips with a neutral spine until you feel the hamstring/erector stretch, then rise using glutes, hamstrings and erectors — and STOP when the body forms a straight line. Hold that neutral top statically for 2-3 s as the squeeze, then a controlled 2-3 s descent. Chase the hold, not extra range.",br:"Inhale lowering, exhale rising.",a:"Arching past neutral at the top — the main injury risk here — rounding on the descent, jerking up, loading plates before bodyweight is owned.",y:"Yates credited the hyperextension station for his erectors and did these before deadlifts. For a lower-back history the smarter order is reversed: light trap-bar deadlift first while fresh, static-hold extensions after — never hinge heavy on pre-exhausted erectors.",b:"Never hyperextend under load. Straight line, hold, down. That is the entire movement."},
+"cable-curl":{s:"Low pulley, straight or EZ bar, shoulder-width underhand grip. Stand a small step back from the stack so the cable is already under tension with the arms straight. Elbows pinned to your sides, knees soft, core braced, torso upright.",c:"Curl in a smooth arc with the elbows fixed, squeeze hard at the top for about a second, then lower slowly to full extension without letting the stack touch down. The cable keeps tension on the biceps at the bottom and the top, where a barbell goes slack — so there is no resting point anywhere in the rep.",br:"Exhale curling, inhale lowering.",a:"Leaning back to move the weight, elbows drifting forward so the front delts take over, shrugging, cutting the bottom short, letting the stack pull the arms down fast.",y:"Cable and machine curls were Yates' safe isolation choice for a held peak contraction and a controlled negative. As the last biceps movement it still follows his rule: stop at or just past positive failure."},
+"back-ext-hold":{s:"Pad set so the hip crease sits just above its top edge, ankles anchored, arms crossed on the chest. No added weight.",c:"Rise to a straight line from head to heels and hold it. Glutes squeezed, ribs down, chin tucked, spine neutral — not arched. Hold for time and end the set the moment the position changes: hips sagging, lower back arching, or shaking you cannot control. Log the seconds in the reps box.",br:"Breathe steadily through the hold with the core braced. Do not hold your breath.",a:"Arching above the straight line, letting the hips sag as you tire and hanging on anyway, craning the neck to look up, holding the breath, adding weight before 60 s is comfortable.",y:"Not a Yates movement — he did back extensions for reps before deadlifts. The hold trades erector strength work for erector endurance, the quality back-pain research tends to rate above raw strength.",b:"The hold only counts in neutral: straight line or stop. A sagging or arched hold loads the passive structures of the spine instead of the muscles. Progress by adding seconds, up to about 60, before considering load."},
+"suitcase-carry":{s:"One dumbbell or kettlebell beside one foot. Hinge or squat down to it with a flat back — never a twist-and-bend — grip hard and stand up. Shoulders level, ribs down, free arm relaxed.",c:"Walk slowly in a straight line, standing as tall as if the hand were empty. The whole job is refusing to lean: the obliques and quadratus lumborum on the opposite side work to keep the torso upright. Short, even steps, weight clear of the thigh. Set it down with the same hinge, then repeat on the other side with the same weight and time. One row in the log covers both sides.",br:"Short, steady breaths behind a braced core — do not hold your breath for the whole carry.",a:"Leaning away from the weight or toward it, hiking the loaded shoulder, resting the weight on the thigh, rushing, a load so heavy the torso tilts in the first few steps, twisting to pick it up or put it down.",y:"Not a Yates movement. It adds what the rest of the programme lacks: side-to-side trunk stiffness under load, plus grip.",b:"End the carry when you can no longer stay level — a tilted carry trains the lean, not the muscles that resist it. The pick-up and set-down are where backs get tweaked: hinge, brace, no rotation."},
 "mach-incline-press":{s:"Handles at upper-chest height, back flat on the pad. Yates set inclines shallow — around 30 degrees, not 45 — 'to ensure the resistance is placed on your pecs; a steeper incline shifts the emphasis to the front delts.'",c:"Deep stretch at the bottom, then drive smoothly and strongly — 'slow and precise on the way down, explosive on the way up' — stopping just short of lockout so the pecs never rest. Elbows about 45 degrees from the torso.",br:"Inhale lowering, exhale pressing.",a:"Bouncing out of the stretch, flaring the elbows to 90 degrees, locking out and resting, setting the incline too steep.",y:"Rest-pause is his extender of choice on machine presses: rack it, three deep breaths, one or two more reps. The fixed path makes past-failure work safe."},
 "mach-chest-press":{s:"Seat set so the handles align mid-chest, shoulder blades retracted and pinned to the pad.",c:"Press forward and slightly in, stop short of a hard lockout, control the return into a genuine chest stretch. Yates: machines' stability 'allows for a controlled range of motion and targeted isolation' — meaning true failure, safely.",br:"Exhale pressing, inhale returning.",a:"Shoulders rolling forward off the pad, partial range, momentum, lockout resting.",y:"The second press — the pecs are pre-fatigued, so moderate loads reach failure. Another good rest-pause candidate."},
 "pec-deck":{s:"Handles/pads at mid-chest, back flat, feet planted, shoulders down and slightly retracted. Start from a comfortable stretch — not an aggressive one.",c:"Hug-a-tree squeeze: bring the pads together with the pecs, hold the peak contraction, then control the opening back to the stretch without letting the stack drag you deeper than comfort. Grip the handles lightly so the forearms stay out of it.",br:"Exhale closing, inhale opening.",a:"Over-deep stretching under load (shoulder strain), bending and extending the elbows into a press, shrugging, letting the arms snap back.",y:"Yates used flyes to take the delts and triceps 'almost fully out of the equation' — pure pec isolation between the presses and the cables."},
@@ -210,6 +215,8 @@ function showForm(exId){
 let state = load();
 function migrate(s){
   try{
+    const v0 = s.mig || 0;
+    if(v0 < 1){
     const w4 = s.program.find(w => w.id === "w4");
     if(w4 && !w4.exercises.some(e => e.id === "glute-bridge-machine")){
       const i = w4.exercises.findIndex(e => e.id === "leg-curl");
@@ -239,6 +246,24 @@ function migrate(s){
         localStorage.setItem(LS_KEY, JSON.stringify(s));
       }
     }
+    }
+    if(v0 < 2){
+      const b2 = s.program.find(w => w.id === "w2");
+      if(b2){
+        const be = b2.exercises.findIndex(e => e.id === "back-extension");
+        if(be >= 0 && !b2.exercises.some(e => e.id === "back-ext-hold" || e.id === "suitcase-carry")){
+          b2.exercises.splice(be, 1, mkEx("back-ext-hold","Back Extension Hold",[],"30-60s",true), carryEx());
+        }
+      }
+      const c3 = s.program.find(w => w.id === "w3");
+      if(c3){
+        const pc = c3.exercises.findIndex(e => e.id === "mach-preacher-curl");
+        if(pc >= 0 && !c3.exercises.some(e => e.id === "cable-curl")){
+          c3.exercises.splice(pc, 1, mkEx("cable-curl","Cable Curl",[],"6-8"));
+        }
+      }
+    }
+    if(v0 !== 2){ s.mig = 2; localStorage.setItem(LS_KEY, JSON.stringify(s)); }
   }catch(e){}
 }
 function load(){
@@ -246,7 +271,7 @@ function load(){
     const raw = localStorage.getItem(LS_KEY);
     if(raw){ const s = JSON.parse(raw); if(s && s.program){ migrate(s); return s; } }
   }catch(e){}
-  return {program: defaultProgram(), sessions: [], active: null};
+  return {program: defaultProgram(), sessions: [], active: null, mig: 2};
 }
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
@@ -258,9 +283,12 @@ const fmtClock = s => Math.floor(s/60) + ":" + String(Math.floor(s%60)).padStart
 const fmtDate = d => d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
 function fmtDur(ms){ const m = Math.round(ms/60000); return m >= 60 ? Math.floor(m/60)+"h "+(m%60)+"m" : m+"m"; }
 function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 2200); }
+function tUnit(t){ const m = /^\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)?\s*(s|m)$/.exec(String(t == null ? "" : t).trim()); return m ? m[1] : ""; }
 function fmtVal(set){
-  if(set.weight !== "" && set.weight != null && set.reps !== "" && set.reps != null) return set.weight + "×" + set.reps;
-  if(set.reps !== "" && set.reps != null) return "×" + set.reps;
+  const u = tUnit(set.target);
+  const r = (set.reps === "" || set.reps == null) ? "" : (u ? String(set.reps).replace(/\s*[sm]$/i, "") : set.reps);
+  if(set.weight !== "" && set.weight != null && r !== "") return set.weight + "×" + r + u;
+  if(r !== "") return (u ? "" : "×") + r + u;
   return null;
 }
 function completedSessions(){ return state.sessions.filter(s => s.endedAt); }
@@ -332,7 +360,7 @@ function renderHome(){
     card.innerHTML =
       '<span class="dot" style="background:' + wo.color + '"></span>' +
       '<span class="wo-name">' + esc(wo.name) + '</span>' +
-      '<span class="wo-meta">' + wo.exercises.length + ' exercises' + (lastFor ? ' · last ' + lastFor.date.slice(5) : '') + '</span>' +
+      '<span class="wo-meta">' + wo.exercises.filter(e => !e.off).length + ' exercises' + (lastFor ? ' · last ' + lastFor.date.slice(5) : '') + '</span>' +
       '<span class="wo-actions">' +
         '<button class="btn small" onclick="startWorkout(\'' + wo.id + '\')">Start</button>' +
         '<button class="btn small ghost" onclick="openEdit(\'' + wo.id + '\')">Edit</button>' +
@@ -400,7 +428,7 @@ function startWorkout(woId){
   const session = {
     id: uid(), workoutId: wo.id, workoutName: wo.name,
     date: fmtDate(new Date()), startedAt: Date.now(), endedAt: null,
-    exercises: wo.exercises.map(ex => {
+    exercises: wo.exercises.filter(ex => !ex.off).map(ex => {
       const prev = lastSets(ex.id);
       return { exId: ex.id, name: ex.name, repsOnly: !!ex.repsOnly,
         sets: ex.sets.map((s, i) => {
@@ -458,7 +486,7 @@ function prBadges(ex, si){
   const w = parseFloat(st.weight) || 0, r = parseFloat(st.reps) || 0;
   const out = [];
   if(ex.repsOnly){
-    if(best.br > 0 && r > best.br) out.push("&#9650; most reps");
+    if(best.br > 0 && r > best.br) out.push("&#9650; " + ({s:"longest hold", m:"furthest"}[tUnit(st.target)] || "most reps"));
   }else{
     if(best.bw > 0 && w > best.bw) out.push("&#9650; heaviest");
     if(best.bv > 0 && w * r > best.bv) out.push("&#9650; best volume");
@@ -521,7 +549,8 @@ function toggleDone(ei, si, btn){
   const st = state.active.exercises[ei].sets[si];
   st.done = !st.done;
   if(st.done){
-    if(st.reps === "" && /^\d+(\.\d+)?$/.test(st.target)) st.reps = st.target;
+    const tm = /^(\d+(?:\.\d+)?)\s*(?:s|m)?$/.exec(String(st.target).trim());
+    if(st.reps === "" && tm) st.reps = tm[1];
     st.pre = null;
   }
   save();
@@ -675,15 +704,21 @@ function renderEditList(){
     const scheme = ex.sets.map(s => (s.type === "warm" ? "(" + s.target + ")" : s.target)).join(" · ");
     const noteBit = ex.note ? " · " + ex.note : "";
     const row = document.createElement("div");
-    row.className = "edit-row";
+    row.className = "edit-row" + (ex.off ? " off" : "");
     row.innerHTML =
-      '<span class="er-name">' + esc(ex.name) + '<span class="er-scheme">' + esc(scheme) + (ex.repsOnly ? " · reps only" : "") + esc(noteBit) + '</span></span>' +
+      '<button class="tog' + (ex.off ? '' : ' on') + '" onclick="toggleOff(' + i + ')" title="' + (ex.off ? 'Activate' : 'Deactivate') + '"></button>' +
+      '<span class="er-name">' + esc(ex.name) + '<span class="er-scheme">' + esc(scheme) + (ex.repsOnly ? " · reps only" : "") + (ex.off ? " · inactive" : "") + esc(noteBit) + '</span></span>' +
       '<button class="icon-btn" onclick="moveEx(' + i + ',-1)">↑</button>' +
       '<button class="icon-btn" onclick="moveEx(' + i + ',1)">↓</button>' +
       '<button class="icon-btn" onclick="openExForm(' + i + ')">✎</button>' +
       '<button class="icon-btn" style="color:var(--accent)" onclick="delEx(' + i + ')">✕</button>';
     list.appendChild(row);
   });
+}
+function toggleOff(i){
+  const arr = state.program.find(w => w.id === editWoId).exercises;
+  arr[i].off = !arr[i].off;
+  save(); renderEditList();
 }
 function moveEx(i, dir){
   const arr = state.program.find(w => w.id === editWoId).exercises;
@@ -750,7 +785,7 @@ $("modal-wrap").addEventListener("click", e => { if(e.target === $("modal-wrap")
 /* ---------- export / import ---------- */
 function exportData(){
   return JSON.stringify({app:"hitlog", version:1, exportedAt:new Date().toISOString(),
-    units:"kg", program: state.program, sessions: completedSessions()}, null, 1);
+    units:"kg", mig: state.mig || 0, program: state.program, sessions: completedSessions()}, null, 1);
 }
 $("btn-export").onclick = () => {
   const blob = new Blob([exportData()], {type:"application/json"});
@@ -779,8 +814,8 @@ function doImport(){
     const data = JSON.parse($("f-import").value);
     if(!data.program || !Array.isArray(data.sessions)) throw new Error("bad format");
     if(!confirm("Replace current programme and " + completedSessions().length + " sessions with imported data?")) return;
-    state = {program: data.program, sessions: data.sessions, active: null};
-    save(); closeModal(); renderHome(); toast("Imported " + data.sessions.length + " sessions");
+    state = {program: data.program, sessions: data.sessions, active: null, mig: data.mig || 0};
+    migrate(state); save(); closeModal(); renderHome(); toast("Imported " + data.sessions.length + " sessions");
   }catch(e){ toast("Couldn't read that JSON"); }
 }
 
@@ -788,7 +823,7 @@ function doImport(){
 window.startWorkout = startWorkout; window.openEdit = openEdit; window.setVal = setVal;
 window.toggleDone = toggleDone; window.moveEx = moveEx; window.delEx = delEx;
 window.openExForm = openExForm; window.saveExForm = saveExForm; window.closeModal = closeModal;
-window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm; window.editNote = editNote; window.saveNote = saveNote; window.preFocus = preFocus; window.preBlur = preBlur;
+window.deleteSession = deleteSession; window.doImport = doImport; window.resumeActive = resumeActive; window.showForm = showForm; window.editNote = editNote; window.saveNote = saveNote; window.preFocus = preFocus; window.preBlur = preBlur; window.toggleOff = toggleOff;
 
 renderHome();
 if(state.active){
