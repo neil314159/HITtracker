@@ -43,6 +43,9 @@
     <div class="cal-grid" id="cal-grid"></div>
   </div>
 
+  <div class="eyebrow">Progress</div>
+  <button class="card prog-entry" id="btn-progress"><span>Max weight by exercise<span class="sub">A chart for every exercise you've logged</span></span><span class="pg-chev">&#8250;</span></button>
+
   <div class="eyebrow">Data</div>
   <div class="card" style="display:flex; gap:8px; flex-wrap:wrap;">
     <button class="btn" id="btn-export">Export JSON</button>
@@ -82,6 +85,25 @@
   </div>
   <div class="card" id="edit-list"></div>
   <div class="footer-note">Rename keeps an exercise's history. To swap in a different movement, delete it and add the new one so its history starts fresh.</div>
+</div>
+
+<!-- ============ PROGRESS ============ -->
+<div class="view" id="view-progress">
+  <div class="session-bar">
+    <button class="btn small" id="btn-prog-back">&#8249; Back</button>
+    <span class="sb-name">Progress</span>
+    <span class="sb-spacer"></span>
+  </div>
+  <div id="prog-list"></div>
+</div>
+
+<div class="view" id="view-chart">
+  <div class="session-bar">
+    <button class="btn small" id="btn-chart-back">&#8249; Back</button>
+    <span class="sb-name">Progress</span>
+    <span class="sb-spacer"></span>
+  </div>
+  <div id="chart-body"></div>
 </div>
 
 <!-- ============ MODALS ============ -->
@@ -776,6 +798,160 @@ function saveExForm(i){
 }
 $("btn-add-ex").onclick = () => openExForm(null);
 $("btn-edit-back").onclick = () => { show("view-home"); renderHome(); };
+
+/* ---------- progress ---------- */
+function numVal(v){ const n = parseFloat(String(v == null ? "" : v).replace(",", ".")); return isFinite(n) ? n : null; }
+function parseDay(d){ const p = String(d).split("-").map(Number); return new Date(p[0], (p[1] || 1) - 1, p[2] || 1); }
+function fmtNum(n){ return String(Math.round(n * 100) / 100); }
+function fmtDay(d, withYear){ return d.toLocaleDateString(undefined, withYear ? {day:"numeric", month:"short", year:"2-digit"} : {day:"numeric", month:"short"}); }
+const METRIC = {kg:"Max weight", s:"Longest hold", m:"Furthest", reps:"Most reps"};
+function fmtV(v, mode){ return fmtNum(v) + ({kg:" kg", s:" s", m:" m", reps:" reps"}[mode] || ""); }
+
+/* one point per session: the heaviest completed set (or most reps / seconds when nothing is weighted) */
+function exSeries(exId){
+  const sess = completedSessions().slice().sort((a, b) =>
+    a.date < b.date ? -1 : a.date > b.date ? 1 : (a.startedAt || 0) - (b.startedAt || 0));
+  const rows = []; let weighted = false, unit = "", name = null;
+  sess.forEach(s => {
+    const e = s.exercises.find(x => x.exId === exId); if(!e) return;
+    let w = null, wr = null, r = null;
+    e.sets.forEach(st => {
+      if(!st.done) return;
+      const sw = numVal(st.weight), sr = numVal(st.reps);
+      if(sw != null && sw > 0 && (w == null || sw > w || (sw === w && (sr || 0) > (wr || 0)))){ w = sw; wr = sr; }
+      if(sr != null && (r == null || sr > r)) r = sr;
+      if(!unit) unit = tUnit(st.target);
+    });
+    if(w == null && r == null) return;
+    if(w != null) weighted = true;
+    name = e.name;
+    rows.push({date: s.date, day: parseDay(s.date), w, wr, r});
+  });
+  const mode = weighted ? "kg" : (unit || "reps");
+  const pts = rows.filter(p => (mode === "kg" ? p.w : p.r) != null)
+                  .map(p => Object.assign(p, {v: mode === "kg" ? p.w : p.r}));
+  return {mode, pts, name};
+}
+
+let progScroll = 0;
+function progRow(id, name, off){
+  const s = exSeries(id);
+  const tag = off ? "inactive · " : "";
+  if(!s.pts.length) return '<div class="pg-row empty"><span class="pg-name">' + esc(name) +
+    '<span class="pg-sub">' + tag + 'No data yet</span></span></div>';
+  const last = s.pts[s.pts.length - 1];
+  const best = Math.max.apply(null, s.pts.map(p => p.v));
+  const n = s.pts.length;
+  return '<button class="pg-row" data-ex="' + esc(id) + '"><span class="pg-name">' + esc(name) +
+    '<span class="pg-sub">' + tag + n + (n === 1 ? ' session' : ' sessions') + ' · last ' + fmtDay(last.day) + '</span></span>' +
+    '<span class="pg-val num">' + fmtV(last.v, s.mode) +
+    (best > last.v ? '<small>best ' + fmtV(best, s.mode) + '</small>' : (n > 1 ? '<small class="top">best</small>' : '')) +
+    '</span><span class="pg-chev">&#8250;</span></button>';
+}
+function renderProgress(){
+  let html = "";
+  const listed = new Set();
+  state.program.forEach(w => {
+    if(!w.exercises.length) return;
+    html += '<div class="eyebrow"><span class="wdot" style="background:' + esc(w.color) + '"></span>' + esc(w.name) + '</div><div class="card pg-card">';
+    w.exercises.forEach(ex => { listed.add(ex.id); html += progRow(ex.id, ex.name, ex.off); });
+    html += '</div>';
+  });
+  const retired = {};
+  completedSessions().forEach(s => s.exercises.forEach(e => {
+    if(!listed.has(e.exId) && e.sets.some(st => st.done)) retired[e.exId] = {name: e.name, date: s.date};
+  }));
+  const rIds = Object.keys(retired).sort((a, b) => retired[a].date < retired[b].date ? 1 : -1);
+  if(rIds.length){
+    html += '<div class="eyebrow">No longer in programme</div><div class="card pg-card">';
+    rIds.forEach(id => { html += progRow(id, retired[id].name, false); });
+    html += '</div>';
+  }
+  $("prog-list").innerHTML = html;
+}
+
+function niceStep(raw, kg){
+  if(!(raw > 0)) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / e;
+  if(kg) return (f <= 1 ? 1 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;   /* plate-friendly: 2.5 / 5 / 10 kg */
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * e;
+}
+function chartSVG(pts, mode, bestIdx){
+  const W = 340, H = 196, L = 42, R = 14, T = 12, B = 30;
+  const xs = pts.map(p => p.day.getTime()), vs = pts.map(p => p.v);
+  const x0 = Math.min.apply(null, xs), x1 = Math.max.apply(null, xs);
+  let lo = Math.min.apply(null, vs), hi = Math.max.apply(null, vs);
+  if(hi === lo){ const pad = Math.max(1, Math.abs(hi) * 0.1); lo -= pad; hi += pad; }
+  const step = Math.max(1, niceStep((hi - lo) / 4, mode === "kg"));
+  lo = Math.max(0, Math.floor(lo / step) * step); hi = Math.ceil(hi / step) * step;
+  if(hi === lo) hi = lo + step;
+  const X = t => x1 === x0 ? L + (W - L - R) / 2 : L + (t - x0) / (x1 - x0) * (W - L - R);
+  const Y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+  let g = "";
+  for(let v = lo; v <= hi + 1e-9; v += step){
+    const y = Y(v).toFixed(1);
+    g += '<line class="ch-grid" x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '"/>' +
+         '<text class="ch-axis" x="' + (L - 7) + '" y="' + y + '" dy="3.5" text-anchor="end">' + fmtNum(v) + '</text>';
+  }
+  const multiYear = pts[0].day.getFullYear() !== pts[pts.length - 1].day.getFullYear();
+  const yb = H - 9;
+  if(x1 === x0){
+    g += '<text class="ch-axis" x="' + X(x0) + '" y="' + yb + '" text-anchor="middle">' + fmtDay(pts[0].day, multiYear) + '</text>';
+  }else{
+    g += '<text class="ch-axis" x="' + L + '" y="' + yb + '" text-anchor="start">' + fmtDay(pts[0].day, multiYear) + '</text>' +
+         '<text class="ch-axis" x="' + (W - R) + '" y="' + yb + '" text-anchor="end">' + fmtDay(pts[pts.length - 1].day, multiYear) + '</text>';
+  }
+  const d = pts.map((p, i) => (i ? "L" : "M") + X(xs[i]).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+  const r = pts.length > 40 ? 2.5 : 3.5;
+  let dots = "";
+  pts.forEach((p, i) => {
+    const cls = "ch-dot" + (i === pts.length - 1 ? " last" : "") + (i === bestIdx ? " best" : "");
+    dots += '<circle class="' + cls + '" cx="' + X(xs[i]).toFixed(1) + '" cy="' + Y(p.v).toFixed(1) + '" r="' + (i === bestIdx ? r + 1.5 : r) + '"/>';
+  });
+  return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + METRIC[mode] + ' per session">' +
+    g + (pts.length > 1 ? '<path class="ch-line" d="' + d + '"/>' : '') + dots + '</svg>';
+}
+function openChart(id){
+  progScroll = window.scrollY;
+  const s = exSeries(id);
+  if(!s.pts.length) return;
+  const pex = progEx(id);
+  const name = pex ? pex.name : (s.name || id);
+  const pts = s.pts, n = pts.length, last = pts[n - 1], first = pts[0];
+  let bestIdx = 0; pts.forEach((p, i) => { if(p.v > pts[bestIdx].v) bestIdx = i; });
+  const best = pts[bestIdx];
+  const yr = new Date().getFullYear();
+  const withYr = p => p.day.getFullYear() !== yr;
+  const diff = last.v - first.v;
+  const change = n > 1 ? (diff > 0 ? "+" : diff < 0 ? "&minus;" : "&plusmn;") + fmtV(Math.abs(diff), s.mode) : "&mdash;";
+  let html = '<div class="ch-title">' + esc(name) + '</div>' +
+    '<div class="ch-metric">' + METRIC[s.mode] + ' per session' + (s.mode === "kg" ? ' &middot; heaviest completed set' : '') + '</div>' +
+    '<div class="ch-stats">' +
+      '<div class="ch-stat best"><b>Best</b><span class="num">' + fmtV(best.v, s.mode) + '</span><i>' + fmtDay(best.day, withYr(best)) + '</i></div>' +
+      '<div class="ch-stat"><b>Latest</b><span class="num">' + fmtV(last.v, s.mode) + '</span><i>' + fmtDay(last.day, withYr(last)) + '</i></div>' +
+      '<div class="ch-stat"><b>Change</b><span class="num">' + change + '</span><i>' + (n > 1 ? 'since ' + fmtDay(first.day, withYr(first)) : 'one session') + '</i></div>' +
+    '</div>' +
+    '<div class="card">' + chartSVG(pts, s.mode, bestIdx) +
+    (n === 1 ? '<div class="ch-note">One session so far &mdash; the trend line starts with the next.</div>' : '') + '</div>' +
+    '<div class="eyebrow">Sessions</div><div class="card pg-card">';
+  let running = -Infinity; const prFlags = pts.map((p, i) => { const f = i > 0 && p.v > running; running = Math.max(running, p.v); return f; });
+  for(let i = n - 1; i >= 0; i--){
+    const p = pts[i];
+    const detail = s.mode === "kg" && p.wr != null ? fmtV(p.v, s.mode) + ' &times; ' + fmtNum(p.wr) : fmtV(p.v, s.mode);
+    html += '<div class="ch-sess"><span class="d">' + fmtDay(p.day, withYr(p)) + '</span><span class="v num">' + detail +
+      (prFlags[i] ? '<span class="pr-mark">PR</span>' : '') + '</span></div>';
+  }
+  html += '</div>';
+  $("chart-body").innerHTML = html;
+  show("view-chart");
+}
+$("btn-progress").onclick = () => { renderProgress(); show("view-progress"); };
+$("btn-prog-back").onclick = () => { show("view-home"); renderHome(); };
+$("btn-chart-back").onclick = () => { show("view-progress"); window.scrollTo(0, progScroll); };
+$("prog-list").addEventListener("click", e => {
+  const b = e.target.closest("[data-ex]");
+  if(b) openChart(b.getAttribute("data-ex"));
+});
 
 /* ---------- modal ---------- */
 function openModal(html){ $("modal-body").innerHTML = html; $("modal-wrap").classList.add("open"); }
